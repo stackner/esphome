@@ -203,7 +203,7 @@ void Powerpal::upload_data_to_cloud_() {
 }
 #endif
 
-void Powerpal::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t get_gattc_if,
+void Powerpal::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t get_get_gattc_if(),
                                    esp_ble_gattc_cb_param_t *param) {
   switch (event) {
     case ESP_GATTC_DISCONNECT_EVT: {
@@ -275,7 +275,7 @@ void Powerpal::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t get
           if (param->read.value[0] != this->reading_batch_size_[0]) {
             // reading batch size needs changing, so write
             auto status =
-                esp_ble_gattc_write_char(this->parent()->get_gattc_if, this->parent()->get_conn_id,
+                esp_ble_gattc_write_char(this->parent()->get_get_gattc_if(), this->parent()->get_get_conn_id(),
                                          this->reading_batch_size_char_handle_, sizeof(this->reading_batch_size_),
                                          this->reading_batch_size_, ESP_GATT_WRITE_TYPE_RSP, ESP_GATT_AUTH_REQ_NONE);
             if (status) {
@@ -283,7 +283,7 @@ void Powerpal::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t get
             }
           } else {
             // reading batch size is set correctly so subscribe to measurement notifications
-            auto status = esp_ble_gattc_register_for_notify(this->parent_->get_gattc_if, this->parent_->get_remote_bda,
+            auto status = esp_ble_gattc_register_for_notify(this->parent_->get_get_gattc_if(), this->parent_->get_get_remote_bda(),
                                                             this->measurement_char_handle_);
             if (status) {
               ESP_LOGW(TAG, "[%s] esp_ble_gattc_register_for_notify failed, status=%d",
@@ -367,7 +367,7 @@ void Powerpal::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t get
         this->authenticated_ = true;
 
         auto read_reading_batch_size_status =
-            esp_ble_gattc_read_char(this->parent()->get_gattc_if, this->parent()->get_conn_id,
+            esp_ble_gattc_read_char(this->parent()->get_get_gattc_if(), this->parent()->get_get_conn_id(),
                                     this->reading_batch_size_char_handle_, ESP_GATT_AUTH_REQ_NONE);
         if (read_reading_batch_size_status) {
           ESP_LOGW(TAG, "Error sending read request for reading batch size, status=%d", read_reading_batch_size_status);
@@ -375,7 +375,7 @@ void Powerpal::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t get
 
         if (!this->powerpal_apikey_.length()) {
           // read uuid (apikey)
-          auto read_uuid_status = esp_ble_gattc_read_char(this->parent()->get_gattc_if, this->parent()->get_conn_id,
+          auto read_uuid_status = esp_ble_gattc_read_char(this->parent()->get_get_gattc_if(), this->parent()->get_get_conn_id(),
                                                             this->uuid_char_handle_, ESP_GATT_AUTH_REQ_NONE);
           if (read_uuid_status) {
             ESP_LOGW(TAG, "Error sending read request for powerpal uuid, status=%d", read_uuid_status);
@@ -383,7 +383,7 @@ void Powerpal::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t get
         }
         if (!this->powerpal_device_id_.length()) {
           // read serial number (device id)
-          auto read_serial_number_status = esp_ble_gattc_read_char(this->parent()->get_gattc_if, this->parent()->get_conn_id,
+          auto read_serial_number_status = esp_ble_gattc_read_char(this->parent()->get_get_gattc_if(), this->parent()->get_get_conn_id(),
                                                             this->serial_number_char_handle_, ESP_GATT_AUTH_REQ_NONE);
           if (read_serial_number_status) {
             ESP_LOGW(TAG, "Error sending read request for powerpal serial number, status=%d", read_serial_number_status);
@@ -392,14 +392,14 @@ void Powerpal::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t get
 
         if (this->battery_ != nullptr) {
           // read battery
-          auto read_battery_status = esp_ble_gattc_read_char(this->parent()->get_gattc_if, this->parent()->get_conn_id,
+          auto read_battery_status = esp_ble_gattc_read_char(this->parent()->get_get_gattc_if(), this->parent()->get_get_conn_id(),
                                                              this->battery_char_handle_, ESP_GATT_AUTH_REQ_NONE);
           if (read_battery_status) {
             ESP_LOGW(TAG, "Error sending read request for battery, status=%d", read_battery_status);
           }
           // Enable notifications for battery
           auto notify_battery_status = esp_ble_gattc_register_for_notify(
-              this->parent_->get_gattc_if, this->parent_->get_remote_bda, this->battery_char_handle_);
+              this->parent_->get_get_gattc_if(), this->parent_->get_get_remote_bda(), this->battery_char_handle_);
           if (notify_battery_status) {
             ESP_LOGW(TAG, "[%s] esp_ble_gattc_register_for_notify failed, status=%d",
                      this->parent_->address_str().c_str(), notify_battery_status);
@@ -408,7 +408,7 @@ void Powerpal::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t get
 
         // read firmware version
         auto read_firmware_status =
-            esp_ble_gattc_read_char(this->parent()->get_gattc_if, this->parent()->get_conn_id,
+            esp_ble_gattc_read_char(this->parent()->get_get_gattc_if(), this->parent()->get_get_conn_id(),
                                     this->firmware_char_handle_, ESP_GATT_AUTH_REQ_NONE);
         if (read_firmware_status) {
           ESP_LOGW(TAG, "Error sending read request for led sensitivity, status=%d", read_firmware_status);
@@ -416,7 +416,7 @@ void Powerpal::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t get
 
         // read led sensitivity
         auto read_led_sensitivity_status =
-            esp_ble_gattc_read_char(this->parent()->get_gattc_if, this->parent()->get_conn_id,
+            esp_ble_gattc_read_char(this->parent()->get_get_gattc_if(), this->parent()->get_get_conn_id(),
                                     this->led_sensitivity_char_handle_, ESP_GATT_AUTH_REQ_NONE);
         if (read_led_sensitivity_status) {
           ESP_LOGW(TAG, "Error sending read request for led sensitivity, status=%d", read_led_sensitivity_status);
@@ -426,7 +426,7 @@ void Powerpal::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t get
       }
       if (param->write.handle == this->reading_batch_size_char_handle_) {
         // reading batch size is now set correctly so subscribe to measurement notifications
-        auto status = esp_ble_gattc_register_for_notify(this->parent_->get_gattc_if, this->parent_->get_remote_bda,
+        auto status = esp_ble_gattc_register_for_notify(this->parent_->get_get_gattc_if(), this->parent_->get_get_remote_bda(),
                                                         this->measurement_char_handle_);
         if (status) {
           ESP_LOGW(TAG, "[%s] esp_ble_gattc_register_for_notify failed, status=%d",
@@ -469,7 +469,7 @@ void Powerpal::gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_pa
     case ESP_GAP_BLE_AUTH_CMPL_EVT: {
       if (param->ble_security.auth_cmpl.success) {
         ESP_LOGI(TAG, "[%s] Writing pairing code to Powerpal", this->parent_->address_str().c_str());
-        auto status = esp_ble_gattc_write_char(this->parent()->get_gattc_if, this->parent()->get_conn_id,
+        auto status = esp_ble_gattc_write_char(this->parent()->get_get_gattc_if(), this->parent()->get_get_conn_id(),
                                                this->pairing_code_char_handle_, sizeof(this->pairing_code_),
                                                this->pairing_code_, ESP_GATT_WRITE_TYPE_RSP, ESP_GATT_AUTH_REQ_NONE);
         if (status) {
